@@ -109,6 +109,19 @@ use Sanger::CGP::Vcf::VcfProcessLog;
 
     #Iterate through input and create a record for each.
     my $fai = Bio::DB::HTS::Fai->load($opts->{'r'});
+
+    # Detect chr prefix convention from the first contig in reference fai
+    my $need_chr_prefix = 0;
+    {
+      open my $FAI_FH, '<', $opts->{'r'}.'.fai';
+      my $first_line = <$FAI_FH>;
+      close $FAI_FH;
+      if (defined $first_line) {
+        my ($first_contig) = split /\t/, $first_line;
+        $need_chr_prefix = 1 if ($first_contig =~ /^chr/);
+      }
+    }
+
     while(<$IN_FH>){
       my $line = $_;
       chomp($line);
@@ -123,8 +136,14 @@ use Sanger::CGP::Vcf::VcfProcessLog;
                                                                       && defined($mt_cn_tot)
                                                                       && defined($mt_cn_min));
 
-      my $start_allele = $fai->fetch("$chr:$start-$start") || '.';
-      print $OUT_FH $record_converter->generate_record($chr,$start,$end,$start_allele,$wt_cn_tot,$wt_cn_min,$mt_cn_tot,$mt_cn_min);
+      # Map b37-style chr names to reference convention if needed
+      my $ref_chr = $chr;
+      if ($need_chr_prefix && $chr !~ /^chr/) {
+        $ref_chr = 'chr' . $chr;
+      }
+
+      my $start_allele = $fai->fetch("$ref_chr:$start-$start") || '.';
+      print $OUT_FH $record_converter->generate_record($ref_chr,$start,$end,$start_allele,$wt_cn_tot,$wt_cn_min,$mt_cn_tot,$mt_cn_min);
     }
 
   }catch{

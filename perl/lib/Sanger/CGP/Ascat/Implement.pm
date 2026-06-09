@@ -471,18 +471,45 @@ sub limited_indices {
 sub sex_chr_mapping {
   my $snp_gc = shift;
   open my $I, '<', $snp_gc;
-  my $idx = 0;
   my %chr_map;
-  my @aliases;
+  my $has_chr_prefix = 0;
+  my @autosome_nums;  # actual autosome numbers found in data
   while (<$I>) {
     next if($. == 1);
     my $chr=(split /\t/)[1];
     unless(exists $chr_map{$chr}) {
       $chr_map{$chr} = 1;
-      $idx++;
-      next if($chr =~ m/^\d+$/);
-      push @aliases, "$idx:$chr";
+      $has_chr_prefix = 1 if ($chr =~ /^chr/);
+      my $bare = $chr;
+      $bare =~ s/^chr//;
+      push @autosome_nums, $bare if ($bare =~ /^\d+$/);
     }
+  }
+  close $I;
+
+  # Sort autosome numbers so the count reflects the largest value
+  my @sorted_autos = sort { $a <=> $b } @autosome_nums;
+  my $num_autosomes = scalar @sorted_autos;
+
+  # ASCAT R outputs autosomes as 1-N and sex chromosomes as N+1 (X), N+2 (Y).
+  # Build aliases only for autosomes actually present in the data.
+  my @aliases;
+  if ($has_chr_prefix) {
+    # hg19/hg38-style: map ASCAT numeric outputs to chr-prefix names
+    for my $i (1..$num_autosomes) {
+      my $real_chr = "chr$sorted_autos[$i-1]";
+      push @aliases, "$i:$real_chr" if exists $chr_map{$real_chr};
+    }
+    my $x_idx = $num_autosomes + 1;
+    my $y_idx = $num_autosomes + 2;
+    push @aliases, "$x_idx:chrX" if exists $chr_map{'chrX'};
+    push @aliases, "$y_idx:chrY" if exists $chr_map{'chrY'};
+  } else {
+    # b37-style: only sex chromosomes need aliasing
+    my $x_idx = $num_autosomes + 1;
+    my $y_idx = $num_autosomes + 2;
+    push @aliases, "$x_idx:X" if exists $chr_map{'X'};
+    push @aliases, "$y_idx:Y" if exists $chr_map{'Y'};
   }
   return join ',', @aliases;
 }
