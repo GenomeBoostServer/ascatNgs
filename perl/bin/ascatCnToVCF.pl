@@ -3,6 +3,9 @@
 ##########LICENCE##########
 # Copyright (c) 2014-2018 Genome Research Ltd.
 #
+# Modified by Genome4me Incorporated, 2026-06-09: support chr-prefixed
+# references (hg19/hg38) in the finalise step.
+#
 # Author: CASM/Cancer IT <cgphelp@sanger.ac.uk>
 #
 # This file is part of ascatNgs.

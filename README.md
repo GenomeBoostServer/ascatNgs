@@ -1,5 +1,22 @@
 # AscatNGS
 
+## Fork Notice
+
+This is a modified version of the original
+[ascatNgs](https://github.com/cancerit/ascatNgs) (v4.2.1) by the Cancer, Ageing and
+Somatic Mutation (CASM) group, Genome Research Ltd.
+
+Modifications by Genome4me Incorporated (2026-06-09) are on the `v4.2.1` branch and
+include:
+- Support for chr-prefixed references (hg19/hg38) in the finalise step
+  (`perl/bin/ascatCnToVCF.pl`, `perl/lib/Sanger/CGP/Ascat/Implement.pm`)
+
+This software is distributed under the GNU Affero General Public License v3.0,
+same as the original (see [LICENCE](LICENCE)).
+Original source: https://github.com/cancerit/ascatNgs
+
+---
+
 | Master                                        | Develop                                         |
 | --------------------------------------------- | ----------------------------------------------- |
 | [![Master Badge][travis-master]][travis-base] | [![Develop Badge][travis-develop]][travis-base] |
